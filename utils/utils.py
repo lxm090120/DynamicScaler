@@ -1,8 +1,37 @@
 import importlib
+import os
+from datetime import datetime
+
 import numpy as np
 import cv2
 import torch
 import torch.distributed as dist
+
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+@dataclass
+class RunArgs:
+    config: str = "configs/inference_t2v_freetraj_512_v2.0.yaml"
+    seed: int = 321
+    video_length: int = 16
+    num_partitions: int = 4
+    num_inference_steps: int = 16
+    prompt_file: str = "prompts/test_prompts.txt"
+    new_video_length: int = 50
+    num_processes: int = 1
+    rank: int = 0
+    height: int = 320
+    width: int = 512
+    save_frames: bool = False
+    fps: int = 8
+    unconditional_guidance_scale: float = 12.0
+    lookahead_denoising: bool = True
+    eta: float = 1.0
+    output_dir: Optional[str] = None
+    use_mp4: bool = False
+    output_fps: int = 10
 
 
 def count_params(model, verbose=False):
@@ -75,3 +104,24 @@ def setup_dist(args):
         'nccl',
         init_method='env://'
     )
+
+
+def set_directory(prompt=[], path_root="results/videocraft_v2_fifo", project_id=None, project_folder=None):
+
+    dt_now_str = datetime.now().strftime("%m%d_%H-%M-%S")
+
+    project_id = f"{dt_now_str}-{prompt[:100]}" if project_id is None else f"{dt_now_str}-{project_id}"
+
+    if project_folder is not None:
+        output_dir = os.path.join(path_root, f"random_noise/{project_folder}/{project_id}")
+        latents_dir = os.path.join(path_root, f"latents/{project_folder}/{project_id}")
+    else:
+        output_dir = os.path.join(path_root, f"random_noise/{project_id}")
+        latents_dir = os.path.join(path_root, f"latents/{project_id}")
+
+    print("The results will be saved in", output_dir)
+    print("The latents will be saved in", latents_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(latents_dir, exist_ok=True)
+
+    return output_dir, latents_dir
