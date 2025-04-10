@@ -1,4 +1,4 @@
-## FIFO-Diffusion: Generating Infinite Videos from Text without Training (NeurIPS 2024)
+## DynamicScaler: Seamless and Scalable Video Generation for Panoramic Scenes
 <div align="center">
 
 <p>
